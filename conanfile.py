@@ -9,7 +9,7 @@ class LibeventConan(ConanFile):
     name = "libevent"
     version = "2.0.22"
     description = 'libevent - an event notification library'
-    url = "https://github.com/theirix/conan-libevent"
+    url = "https://github.com/bincrafters/conan-libevent"
     homepage = "https://libevent.org"
     license = "BSD 3-Clause"
     exports = ["LICENSE.md"]
