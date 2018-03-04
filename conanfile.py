@@ -8,18 +8,18 @@ import shutil
 class LibeventConan(ConanFile):
     name = "libevent"
     version = "2.1.8"
-    url = "https://github.com/bincrafters/conan-libevent"
     description = 'libevent - an event notification library'
+    url = "https://github.com/bincrafters/conan-libevent"
+    homepage = "https://libevent.org"
     license = "BSD 3-Clause"
-    website = "https://libevent.org"
+    exports = ["LICENSE.md"]
+    exports_sources = ["print-winsock-errors.c"]
+    source_subfolder = "source_subfolder"
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False],
                "with_openssl": [True, False],
                "disable_threads": [True, False]}
     default_options = "shared=False", "with_openssl=True", "disable_threads=False"
-    exports = ["LICENSE.md"]
-    exports_sources = ["print-winsock-errors.c"]
-    source_subfolder = "source_subfolder"
 
     @property
     def is_v21(self):
@@ -34,6 +34,8 @@ class LibeventConan(ConanFile):
         # 2.0 cannot do openssl on Windows
         if self.settings.os == "Windows" and self.is_v20:
             self.options.with_openssl = False
+        if self.settings.os == "Windows" and self.options.shared:
+            raise Exception("Shared builds on Windows are not supported")
 
     def requirements(self):
         if self.options.with_openssl:
@@ -111,7 +113,14 @@ class LibeventConan(ConanFile):
             suffix = ''
             if self.is_v21 and self.options.with_openssl:
                 suffix = "OPENSSL_DIR=" + self.deps_cpp_info['OpenSSL'].rootpath
-            make_command = "nmake %s -f Makefile.nmake" % suffix
+            # add runtime directives to runtime-unaware nmakefile
+            tools.replace_in_file(os.path.join(self.source_subfolder, "Makefile.nmake"),
+                'LIBFLAGS=/nologo',
+                'LIBFLAGS=/nologo\n'
+                'CFLAGS=$(CFLAGS) /%s' % str(self.settings.compiler.runtime)
+                )
+            # do not build tests. static_libs is the only target, no shared libs at all
+            make_command = "nmake %s -f Makefile.nmake static_libs" % suffix
             with tools.chdir(self.source_subfolder):
                 self.run("%s && %s" % (vcvars, make_command))
 

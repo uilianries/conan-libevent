@@ -1,8 +1,8 @@
 ## Package Status
 
-| Bintray | Windows | Linux | OSX |
-|---------|------------|--------|------|
-|[ ![Download](https://api.bintray.com/packages/bincrafters/public-conan/libevent%3Abincrafters/images/download.svg) ](https://bintray.com/bincrafters/public-conan/libevent%3Abincrafters/_latestVersion)|[![Build status](https://ci.appveyor.com/api/projects/status/github/bincrafters/conan-libevent?svg=true)](https://ci.appveyor.com/project/BinCrafters/conan-libevent)|[![Build Status](https://travis-ci.org/bincrafters/conan-libevent.svg)](https://travis-ci.org/bincrafters/conan-libevent)| [![CircleCI](https://circleci.com/gh/bincrafters/conan-libevent.svg?style=svg)](https://circleci.com/gh/bincrafters/conan-libevent) |
+| Bintray | Windows | Linux & macOS | 
+|:--------:|:---------:|:-----------------:|
+|[![Download](https://api.bintray.com/packages/bincrafters/public-conan/libevent%3Abincrafters/images/download.svg)](https://bintray.com/bincrafters/public-conan/libevent%3Abincrafters/_latestVersion)|[![Build status](https://ci.appveyor.com/api/projects/status/github/bincrafters/conan-libevent?svg=true)](https://ci.appveyor.com/project/BinCrafters/conan-libevent)|[![Build Status](https://travis-ci.org/bincrafters/conan-libevent.svg?)](https://travis-ci.org/bincrafters/conan-libevent)|
 
 ## Conan.io Information
 
