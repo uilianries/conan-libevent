@@ -13,7 +13,7 @@ class LibeventConan(ConanFile):
     homepage = "https://libevent.org"
     license = "BSD 3-Clause"
     exports = ["LICENSE.md"]
-    exports_sources = ["print-winsock-errors.c", "FindLibEvent.cmake"]
+    exports_sources = ["print-winsock-errors.c"]
     source_subfolder = "source_subfolder"
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False],
@@ -118,7 +118,6 @@ class LibeventConan(ConanFile):
 
     def package(self):
         self.copy("LICENSE", dst="licenses", ignore_case=True, keep_path=False)
-        self.copy("FindLibEvent.cmake", dst=".", ignore_case=True, keep_path=False)
         self.copy("*.h", dst="include", src=os.path.join(self.source_subfolder, "include"))
         if self.settings.os == "Windows":
             if self.is_v21:
