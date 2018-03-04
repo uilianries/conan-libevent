@@ -111,7 +111,14 @@ class LibeventConan(ConanFile):
             suffix = ''
             if self.is_v21 and self.options.with_openssl:
                 suffix = "OPENSSL_DIR=" + self.deps_cpp_info['OpenSSL'].rootpath
-            make_command = "nmake %s -f Makefile.nmake" % suffix
+            # add runtime directives to runtime-unaware nmakefile
+            tools.replace_in_file(os.path.join(self.source_subfolder, "Makefile.nmake"),
+                'LIBFLAGS=/nologo',
+                'LIBFLAGS=/nologo\n'
+                'CFLAGS=$(CFLAGS) /%s' % str(self.settings.compiler.runtime)
+                )
+            # do not build tests. static_libs is the only target, no shared libs at all
+            make_command = "nmake %s -f Makefile.nmake static_libs" % suffix
             with tools.chdir(self.source_subfolder):
                 self.run("%s && %s" % (vcvars, make_command))
 
