@@ -34,6 +34,8 @@ class LibeventConan(ConanFile):
         # 2.0 cannot do openssl on Windows
         if self.settings.os == "Windows" and self.is_v20:
             self.options.with_openssl = False
+        if self.settings.os == "Windows" and self.options.shared:
+            raise Exception("Shared builds on Windows are not supported")
 
     def requirements(self):
         if self.options.with_openssl:
