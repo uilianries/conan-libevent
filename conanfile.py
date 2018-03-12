@@ -124,7 +124,7 @@ class LibeventConan(ConanFile):
 
 
     def package(self):
-        self.copy("LICENSE", dst="licenses", ignore_case=True, keep_path=False)
+        self.copy("LICENSE", src=self.source_subfolder, dst="licenses", ignore_case=True, keep_path=False)
         self.copy("*.h", dst="include", src=os.path.join(self.source_subfolder, "include"))
         if self.settings.os == "Windows":
             if self.is_v21:
