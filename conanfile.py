@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from conans import ConanFile, AutoToolsBuildEnvironment, RunEnvironment, tools
 import os
 import shutil
+from conans import ConanFile, AutoToolsBuildEnvironment, RunEnvironment, tools
 
 class LibeventConan(ConanFile):
     name = "libevent"
@@ -51,7 +51,7 @@ class LibeventConan(ConanFile):
         os.rename("libevent-{0}-stable".format(self.version), self.source_subfolder)
         if self.is_v21:
             # copy missing test source, https://github.com/libevent/libevent/issues/523
-            shutil.copy("print-winsock-errors.c", os.path.join(self.source_subfolder,"test/"))
+            shutil.copy("print-winsock-errors.c", os.path.join(self.source_subfolder, "test"))
 
     def build(self):
 
@@ -115,10 +115,9 @@ class LibeventConan(ConanFile):
                 suffix = "OPENSSL_DIR=" + self.deps_cpp_info['OpenSSL'].rootpath
             # add runtime directives to runtime-unaware nmakefile
             tools.replace_in_file(os.path.join(self.source_subfolder, "Makefile.nmake"),
-                'LIBFLAGS=/nologo',
-                'LIBFLAGS=/nologo\n'
-                'CFLAGS=$(CFLAGS) /%s' % str(self.settings.compiler.runtime)
-                )
+                                  'LIBFLAGS=/nologo',
+                                  'LIBFLAGS=/nologo\n'
+                                  'CFLAGS=$(CFLAGS) /%s' % str(self.settings.compiler.runtime))
             # do not build tests. static_libs is the only target, no shared libs at all
             make_command = "nmake %s -f Makefile.nmake static_libs" % suffix
             with tools.chdir(self.source_subfolder):
