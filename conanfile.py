@@ -30,6 +30,7 @@ class LibeventConan(ConanFile):
         return self.version.startswith('2.0.')
 
     def configure(self):
+        del self.settings.compiler.libcxx
         # 2.0 cannot do openssl on Windows
         if self.settings.os == "Windows" and self.is_v20:
             self.options.with_openssl = False
