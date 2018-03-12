@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from conans import ConanFile, AutoToolsBuildEnvironment, RunEnvironment, tools
 import os
 import shutil
+from conans import ConanFile, AutoToolsBuildEnvironment, RunEnvironment, tools
 
 class LibeventConan(ConanFile):
     name = "libevent"
@@ -29,8 +29,7 @@ class LibeventConan(ConanFile):
     def is_v20(self):
         return self.version.startswith('2.0.')
 
-    def config_options(self):
-        del self.settings.compiler.libcxx
+    def configure(self):
         # 2.0 cannot do openssl on Windows
         if self.settings.os == "Windows" and self.is_v20:
             self.options.with_openssl = False
@@ -39,7 +38,7 @@ class LibeventConan(ConanFile):
 
     def requirements(self):
         if self.options.with_openssl:
-            self.requires.add("OpenSSL/[>1.0.2a,<1.0.3]@conan/stable")
+            self.requires.add("OpenSSL/1.0.2n@conan/stable")
             if self.options.shared:
                 # static OpenSSL cannot be properly detected because libevent picks up system ssl first
                 # so enforce shared openssl
@@ -51,7 +50,7 @@ class LibeventConan(ConanFile):
         os.rename("libevent-{0}-stable".format(self.version), self.source_subfolder)
         if self.is_v21:
             # copy missing test source, https://github.com/libevent/libevent/issues/523
-            shutil.copy("print-winsock-errors.c", os.path.join(self.source_subfolder,"test/"))
+            shutil.copy("print-winsock-errors.c", os.path.join(self.source_subfolder, "test"))
 
     def build(self):
 
@@ -115,10 +114,9 @@ class LibeventConan(ConanFile):
                 suffix = "OPENSSL_DIR=" + self.deps_cpp_info['OpenSSL'].rootpath
             # add runtime directives to runtime-unaware nmakefile
             tools.replace_in_file(os.path.join(self.source_subfolder, "Makefile.nmake"),
-                'LIBFLAGS=/nologo',
-                'LIBFLAGS=/nologo\n'
-                'CFLAGS=$(CFLAGS) /%s' % str(self.settings.compiler.runtime)
-                )
+                                  'LIBFLAGS=/nologo',
+                                  'LIBFLAGS=/nologo\n'
+                                  'CFLAGS=$(CFLAGS) /%s' % str(self.settings.compiler.runtime))
             # do not build tests. static_libs is the only target, no shared libs at all
             make_command = "nmake %s -f Makefile.nmake static_libs" % suffix
             with tools.chdir(self.source_subfolder):
@@ -126,7 +124,7 @@ class LibeventConan(ConanFile):
 
 
     def package(self):
-        self.copy("LICENSE", dst="licenses", ignore_case=True, keep_path=False)
+        self.copy("LICENSE", src=self.source_subfolder, dst="licenses", ignore_case=True, keep_path=False)
         self.copy("*.h", dst="include", src=os.path.join(self.source_subfolder, "include"))
         if self.settings.os == "Windows":
             if self.is_v21:
