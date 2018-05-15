@@ -7,7 +7,7 @@ from conans import ConanFile, AutoToolsBuildEnvironment, RunEnvironment, tools
 
 class LibeventConan(ConanFile):
     name = "libevent"
-    version = "2.1.8"
+    version = "2.0.22"
     description = 'libevent - an event notification library'
     url = "https://github.com/bincrafters/conan-libevent"
     homepage = "https://libevent.org"
