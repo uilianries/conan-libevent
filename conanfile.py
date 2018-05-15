@@ -17,9 +17,10 @@ class LibeventConan(ConanFile):
     source_subfolder = "source_subfolder"
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False],
+               "fPIC": [True, False],
                "with_openssl": [True, False],
                "disable_threads": [True, False]}
-    default_options = "shared=False", "with_openssl=True", "disable_threads=False"
+    default_options = "shared=False", "fPIC=True", "with_openssl=True", "disable_threads=False"
 
     @property
     def is_v21(self):
@@ -36,6 +37,8 @@ class LibeventConan(ConanFile):
             self.options.with_openssl = False
         if self.settings.os == "Windows" and self.options.shared:
             raise Exception("Shared builds on Windows are not supported")
+        if self.settings.os == "Windows":
+            self.options.remove("fPIC")
 
     def requirements(self):
         if self.options.with_openssl:
@@ -58,6 +61,8 @@ class LibeventConan(ConanFile):
         if self.settings.os == "Linux" or self.settings.os == "Macos":
 
             env_build = AutoToolsBuildEnvironment(self)
+
+            env_build.fpic = self.options.fPIC
 
             env_vars = env_build.vars.copy()
             # Configure script creates conftest that cannot execute without shared openssl binaries.
