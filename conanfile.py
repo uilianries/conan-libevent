@@ -4,13 +4,15 @@
 import os
 import shutil
 from conans import ConanFile, AutoToolsBuildEnvironment, RunEnvironment, tools
+from conans.errors import ConanInvalidConfiguration
 
 class LibeventConan(ConanFile):
     name = "libevent"
     version = "2.1.8"
     description = 'libevent - an event notification library'
     url = "https://github.com/bincrafters/conan-libevent"
-    homepage = "https://libevent.org"
+    homepage = "https://github.com/libevent/libevent"
+    author = "Bincrafters <bincrafters@gmail.com>"
     license = "BSD 3-Clause"
     exports = ["LICENSE.md"]
     exports_sources = ["print-winsock-errors.c"]
@@ -20,7 +22,10 @@ class LibeventConan(ConanFile):
                "fPIC": [True, False],
                "with_openssl": [True, False],
                "disable_threads": [True, False]}
-    default_options = "shared=False", "fPIC=True", "with_openssl=True", "disable_threads=False"
+    default_options = {"shared": False,
+                       "fPIC": True,
+                       "with_openssl": True,
+                       "disable_threads": False}
 
     @property
     def is_v21(self):
@@ -30,19 +35,21 @@ class LibeventConan(ConanFile):
     def is_v20(self):
         return self.version.startswith('2.0.')
 
-    def configure(self):
-        del self.settings.compiler.libcxx
+    def config_options(self):
+        if self.settings.os == "Windows":
+            self.options.remove("fPIC")
         # 2.0 cannot do openssl on Windows
         if self.settings.os == "Windows" and self.is_v20:
             self.options.with_openssl = False
+
+    def configure(self):
+        del self.settings.compiler.libcxx
         if self.settings.os == "Windows" and self.options.shared:
-            raise Exception("Shared builds on Windows are not supported")
-        if self.settings.os == "Windows":
-            self.options.remove("fPIC")
+            raise ConanInvalidConfiguration("Shared builds on Windows are not supported")
 
     def requirements(self):
         if self.options.with_openssl:
-            self.requires.add("OpenSSL/1.0.2n@conan/stable")
+            self.requires.add("OpenSSL/1.0.2o@conan/stable")
             if self.options.shared:
                 # static OpenSSL cannot be properly detected because libevent picks up system ssl first
                 # so enforce shared openssl
@@ -50,7 +57,7 @@ class LibeventConan(ConanFile):
                 self.options["OpenSSL"].shared = self.options.shared
 
     def source(self):
-        tools.get("https://github.com/libevent/libevent/releases/download/release-{0}-stable/libevent-{0}-stable.tar.gz".format(self.version))
+        tools.get("{0}/releases/download/release-{1}-stable/libevent-{1}-stable.tar.gz".format(self.homepage, self.version))
         os.rename("libevent-{0}-stable".format(self.version), self.source_subfolder)
         if self.is_v21:
             # copy missing test source, https://github.com/libevent/libevent/issues/523
@@ -61,9 +68,6 @@ class LibeventConan(ConanFile):
         if self.settings.os == "Linux" or self.settings.os == "Macos":
 
             env_build = AutoToolsBuildEnvironment(self)
-
-            env_build.fpic = self.options.fPIC
-
             env_vars = env_build.vars.copy()
             # Configure script creates conftest that cannot execute without shared openssl binaries.
             # Ways to solve the problem:
