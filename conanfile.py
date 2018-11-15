@@ -53,24 +53,24 @@ class LibeventConan(ConanFile):
         os.rename("libevent-{0}-stable".format(self.version), self.source_subfolder)
         shutil.copy("print-winsock-errors.c", os.path.join(self.source_subfolder, "test"))
 
+    def imports(self):
+        # Copy shared libraries for dependencies to fix DYLD_LIBRARY_PATH problems
+        #
+        # Configure script creates conftest that cannot execute without shared openssl binaries.
+        # Ways to solve the problem:
+        # 1. set *LD_LIBRARY_PATH (works with Linux with RunEnvironment
+        #     but does not work on OS X 10.11 with SIP)
+        # 2. copying dylib's to the build directory (fortunately works on OS X)
+
+        if self.settings.os == "Macos":
+            self.copy("*.dylib*", dst=self.source_subfolder, keep_path=False)
+
     def build(self):
 
         if self.settings.os == "Linux" or self.settings.os == "Macos":
 
             env_build = AutoToolsBuildEnvironment(self)
             env_vars = env_build.vars.copy()
-            # Configure script creates conftest that cannot execute without shared openssl binaries.
-            # Ways to solve the problem:
-            # 1. set *LD_LIBRARY_PATH (works with Linux with RunEnvironment but does not work on OS X 10.11 with SIP)
-            # 2. copying dylib's to the build directory (fortunately works on OS X)
-            imported_libs = []
-            if self._is_shared and self.settings.os == "Macos":
-                for dep in self.deps_cpp_info.deps:
-                    for libname in os.listdir(self.deps_cpp_info[dep].lib_paths[0]):
-                        if libname.endswith('.dylib'):
-                            shutil.copy(self.deps_cpp_info[dep].lib_paths[0] + '/' + libname, self.source_subfolder)
-                            imported_libs.append(libname)
-                self.output.warn("Copying OpenSSL libraries to fix conftest: " + repr(imported_libs))
 
             # required to correctly find static libssl on Linux
             if self.options.with_openssl and self.settings.os == "Linux":
@@ -102,10 +102,6 @@ class LibeventConan(ConanFile):
                         cmd = 'make'
                         self.output.warn('Running: ' + cmd)
                         self.run(cmd)
-
-                    # now clean imported libs
-                    for imported_lib in imported_libs:
-                        os.unlink(imported_lib)
 
         elif self.settings.os == "Windows":
             vcvars = tools.vcvars_command(self.settings)
