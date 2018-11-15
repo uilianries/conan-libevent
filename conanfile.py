@@ -39,14 +39,15 @@ class LibeventConan(ConanFile):
     def configure(self):
         del self.settings.compiler.libcxx
 
+        if self.options.with_openssl and self._is_shared:
+            # static OpenSSL cannot be properly detected because libevent picks up system ssl first
+            # so enforce shared openssl
+            self.output.warn("Enforce shared OpenSSL for shared build")
+            self.options["OpenSSL"].shared = self._is_shared
+
     def requirements(self):
         if self.options.with_openssl:
             self.requires.add("OpenSSL/1.0.2o@conan/stable")
-            if self._is_shared:
-                # static OpenSSL cannot be properly detected because libevent picks up system ssl first
-                # so enforce shared openssl
-                self.output.warn("Enforce shared OpenSSL for shared build")
-                self.options["OpenSSL"].shared = self._is_shared
 
     def source(self):
         tools.get("{0}/releases/download/release-{1}-stable/libevent-{1}-stable.tar.gz".format(self.homepage, self.version))
