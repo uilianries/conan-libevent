@@ -70,8 +70,8 @@ class LibeventConan(ConanFile):
 
         if self.settings.os == "Linux" or self.settings.os == "Macos":
 
-            env_build = AutoToolsBuildEnvironment(self)
-            env_vars = env_build.vars.copy()
+            autotools = AutoToolsBuildEnvironment(self)
+            env_vars = autotools.vars.copy()
 
             # required to correctly find static libssl on Linux
             if self.options.with_openssl and self.settings.os == "Linux":
@@ -81,28 +81,20 @@ class LibeventConan(ConanFile):
             tools.replace_in_file(os.path.join(self.source_subfolder, "configure"), r"-install_name \$rpath/", "-install_name ")
 
             # compose configure options
-            suffix = ''
+            configure_args = []
             if not self._is_shared:
-                suffix += " --disable-shared "
-            if self.options.with_openssl:
-                suffix += "--enable-openssl "
-            else:
-                suffix += "--disable-openssl "
+                configure_args.append("--disable-shared")
+            configure_args.append("--enable-openssl" if self.options.with_openssl else "--disable-openssl")
             if self.options.disable_threads:
-                suffix += "--disable-thread-support "
+                configure_args.append("--disable-thread-support")
 
             with tools.environment_append(env_vars):
 
                 with tools.chdir(self.source_subfolder):
                     # set LD_LIBRARY_PATH
                     with tools.environment_append(RunEnvironment(self).vars):
-                        cmd = './configure %s' % (suffix)
-                        self.output.warn('Running: ' + cmd)
-                        self.run(cmd)
-
-                        cmd = 'make'
-                        self.output.warn('Running: ' + cmd)
-                        self.run(cmd)
+                        autotools.configure(args=configure_args)
+                        autotools.make()
 
         elif self.settings.os == "Windows":
             vcvars = tools.vcvars_command(self.settings)
