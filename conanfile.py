@@ -31,6 +31,12 @@ class LibeventConan(ConanFile):
     def _is_shared(self):
         return self.settings.os != "Windows" and self.options.shared
 
+    @property
+    def _is_mingw(self):
+        return self.settings.compiler == "gcc" and \
+               self.settings.os == "Windows" and \
+               os.name == "nt"
+
     def config_options(self):
         if self.settings.os == "Windows":
             del self.options.fPIC
@@ -68,9 +74,9 @@ class LibeventConan(ConanFile):
 
     def build(self):
 
-        if self.settings.os == "Linux" or self.settings.os == "Macos":
+        if self.settings.os == "Linux" or self.settings.os == "Macos" or self._is_mingw:
 
-            autotools = AutoToolsBuildEnvironment(self)
+            autotools = AutoToolsBuildEnvironment(self, win_bash=tools.os_info.is_windows)
             env_vars = autotools.vars.copy()
 
             # required to correctly find static libssl on Linux
